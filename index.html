@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Quarterback Live Stat Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: sans-serif; padding: 20px; max-width: 700px; margin: auto; position: relative; }
+    .title-container { display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .title-container img { height: 50px; width: 50px; object-fit: contain; }
+    h1 { font-size: 36px; margin: 0; }
+    h2 { text-align: center; font-size: 20px; margin-top: 0; margin-bottom: 5px; font-weight: normal; color: #555; }
+    p.credit { text-align: center; font-size: 14px; color: #777; margin: 0 0 20px; }
+    h3 { margin-top: 20px; border-bottom: 2px solid #ccc; padding-bottom: 5px; }
+    button { margin: 5px; padding: 10px 15px; font-size: 16px; border-radius: 8px; border: none; cursor: pointer; }
+    .complete { background: #4caf50; color: white; }
+    .incomplete { background: #f44336; color: white; }
+    .yards { background: #2196f3; color: white; }
+    .td { background: #ff9800; color: white; }
+    .int { background: #9c27b0; color: white; }
+    .fumble { background: #795548; color: white; }
+    #stats { margin-top: 20px; font-size: 18px; }
+    #stats div { margin: 5px 0; }
+    #ratingBox { position: absolute; top: 20px; right: 20px; padding: 10px 15px; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="title-container">
+    <img src="YOUR_DIRECT_LOGO_URL_HERE" alt="Logo">
+    <h1>Quarterback</h1>
+  </div>
+  <h2>Live Stat Tracker</h2>
+  <p class="credit">Created by Coach "RJ" Justo</p>
+  <div id="ratingBox">Rating: 0.0</div>
+
+  <h3>Passing Attempts</h3>
+  <div>
+    <button class="incomplete" onclick="addIncomplete()">Incomplete</button>
+    <button class="complete" onclick="addComplete()">Complete</button>
+  </div>
+
+  <h3>Rushing</h3>
+  <div>
+    <button class="yards" onclick="addRushing()">Rushing Yards</button>
+  </div>
+
+  <h3>Scoring & Turnovers</h3>
+  <div>
+    <button class="td" onclick="addTD()">Touchdown</button>
+    <button class="int" onclick="addINT()">Interception</button>
+    <button class="fumble" onclick="addFumble()">Fumble</button>
+  </div>
+
+  <h3>Stats</h3>
+  <div id="stats">
+    <div>Passing: <span id="compAtt">0/0</span></div>
+    <div>Passing Yards: <span id="passYards">0</span></div>
+    <div>Rushing Yards: <span id="rushYards">0</span></div>
+    <div>Total Yards: <span id="totalYards">0</span></div>
+    <div>Touchdowns: <span id="tds">0</span></div>
+    <div>Turnovers: <span id="turnovers">0</span></div>
+  </div>
+
+  <script>
+    let attempts = 0, completions = 0;
+    let passYards = 0, rushYards = 0, tds = 0, ints = 0, fumbles = 0;
+
+    function updateStats() {
+      document.getElementById("compAtt").textContent = `${completions}/${attempts}`;
+      document.getElementById("passYards").textContent = passYards;
+      document.getElementById("rushYards").textContent = rushYards;
+      document.getElementById("totalYards").textContent = passYards + rushYards;
+      document.getElementById("tds").textContent = tds;
+      document.getElementById("turnovers").textContent = ints + fumbles;
+
+      // Calculate passer rating
+      let rating = 0;
+      if (attempts > 0) {
+        let a = ((completions / attempts) - 0.3) * 5;
+        let b = ((passYards / attempts) - 3) * 0.25;
+        let c = (tds / attempts) * 20;
+        let d = 2.375 - ((ints / attempts) * 25);
+        [a, b, c, d] = [a, b, c, d].map(val => Math.max(0, Math.min(2.375, val)));
+        rating = ((a + b + c + d) / 6) * 100;
+      }
+
+      const ratingBox = document.getElementById("ratingBox");
+      ratingBox.textContent = `Rating: ${rating.toFixed(1)}`;
+      // Gradient color based on rating
+      let percent = rating / 158.3;
+      let r, g;
+      if (percent < 0.5) {
+        r = 255;
+        g = Math.round(510 * percent);
+      } else {
+        g = 255;
+        r = Math.round(510 * (1 - percent));
+      }
+      ratingBox.style.backgroundColor = `rgb(${r},${g},0)`;
+    }
+
+    function addIncomplete() { attempts++; updateStats(); }
+    function addComplete() {
+      attempts++; completions++;
+      let yards = prompt("Enter yards gained on completion:");
+      if (yards !== null && !isNaN(yards) && yards.trim() !== "") passYards += parseInt(yards);
+      updateStats();
+    }
+    function addRushing() {
+      let yards = prompt("Enter rushing yards:");
+      if (yards !== null && !isNaN(yards) && yards.trim() !== "") rushYards += parseInt(yards);
+      updateStats();
+    }
+    function addTD() { tds++; updateStats(); }
+    function addINT() { attempts++; ints++; updateStats(); }
+    function addFumble() { fumbles++; updateStats(); }
+
+    updateStats();
+  </script>
+</body>
+</html>
