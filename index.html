@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Quarterback Live Stat Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     body { font-family: sans-serif; padding: 20px; max-width: 700px; margin: auto; position: relative; }
     h1 { text-align: center; font-size: 36px; margin: 0; }
@@ -18,9 +19,11 @@
     .int { background: #9c27b0; color: white; }
     .fumble { background: #795548; color: white; }
     .reset { background: #607d8b; color: white; }
+    .save { background: #009688; color: white; }
     #stats { margin-top: 20px; font-size: 18px; }
     #stats div { margin: 5px 0; }
-    #ratingBox { position: absolute; bottom: 20px; right: 20px; padding: 15px 20px; border-radius: 10px; font-size: 32px; color: white; font-weight: bold; }
+    #ratingBox { position: absolute; bottom: 20px; right: 20px; padding: 10px 15px; border-radius: 10px; font-size: 24px; color: white; font-weight: bold; min-width: 120px; text-align: center; }
+    .action-section { margin-top: 20px; border-top: 2px solid #ccc; padding-top: 10px; text-align: center; }
   </style>
 </head>
 <body>
@@ -46,8 +49,9 @@
     <button class="fumble" onclick="addFumble()">Fumble</button>
   </div>
 
-  <div>
-    <button class="reset" onclick="resetStats()">Reset Stats</button>
+  <div class="action-section">
+    <button class="reset" onclick="confirmReset()">Reset Stats</button>
+    <button class="save" onclick="saveScreenshot()">SAVE</button>
   </div>
 
   <h3>Stats</h3>
@@ -63,8 +67,12 @@
   <div id="ratingBox">Rating: 0.0</div>
 
   <script>
-    let attempts = 0, completions = 0;
-    let passYards = 0, rushYards = 0, tds = 0, ints = 0, fumbles = 0;
+    let stats = JSON.parse(localStorage.getItem('qbStats')) || {attempts:0, completions:0, passYards:0, rushYards:0, tds:0, ints:0, fumbles:0};
+    let {attempts, completions, passYards, rushYards, tds, ints, fumbles} = stats;
+
+    function saveStats() {
+      localStorage.setItem('qbStats', JSON.stringify({attempts, completions, passYards, rushYards, tds, ints, fumbles}));
+    }
 
     function updateStats() {
       document.getElementById("compAtt").textContent = `${completions}/${attempts}`;
@@ -97,6 +105,8 @@
         r = Math.round(510 * (1 - percent));
       }
       ratingBox.style.backgroundColor = `rgb(${r},${g},0)`;
+
+      saveStats(); // auto-save on every update
     }
 
     function addIncomplete() { attempts++; updateStats(); }
@@ -115,10 +125,25 @@
     function addINT() { attempts++; ints++; updateStats(); }
     function addFumble() { fumbles++; updateStats(); }
 
+    function confirmReset() {
+      if (confirm("Are you sure you want to reset all stats?")) {
+        resetStats();
+      }
+    }
+
     function resetStats() {
       attempts = 0; completions = 0;
       passYards = 0; rushYards = 0; tds = 0; ints = 0; fumbles = 0;
       updateStats();
+    }
+
+    function saveScreenshot() {
+      html2canvas(document.body).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'qb_stats.png';
+        link.href = canvas.toDataURL();
+        link.click();
+      });
     }
 
     updateStats();
